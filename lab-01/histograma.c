@@ -5,22 +5,24 @@ int main(int argc, char *argv[])
 {
     // Agregar código aquí.
 
-	if(argc != 2){
+	int tamannoArray = 10; 		//default
+	
+	if(argc > 2){
 		printf("Error, se necesita el tamanno del histograma como param, ingrese un solo valor\n");
 		exit(EXIT_FAILURE);	
 	}
 
-	int tamannoArray = atoi(argv[1]);
-	
-	if (tamannoArray <= 0){
-		printf("Error, ingrese un valor valido para el tamanno del histograma(mayor que 0)\n");
-		exit(EXIT_FAILURE);	
+	if(argc == 2){
+		tamannoArray = atoi(argv[1]);
+		if (tamannoArray <= 0){
+			printf("Error, ingrese un valor valido para el tamanno del histograma(mayor que 0)\n");
+			exit(EXIT_FAILURE);	
+		}
 	}
 	
-	tamannoArray++;
-	int array[tamannoArray];					//array[0] no se utiliza
+	int array[tamannoArray + 1];					//array[0] no se utiliza
 	int k;
-	for(k = 0; k < tamannoArray; k++)
+	for(k = 0; k < tamannoArray + 1; k++)
 		array[k] = 0;
 
 	int cont = 0;							//contador
@@ -28,17 +30,21 @@ int main(int argc, char *argv[])
 	
 	while (letra != EOF){
 		
-		if(letra == ' ' || letra == '\n'){
-			array[cont]++;
-			cont = 0;	
-		} else {
+		if(letra == ' ' || letra == '\n'){			//fin de palabra, guardado en el array
+			if(cont <= tamannoArray){
+				array[cont]++;
+			}
+			cont = 0;
+		} else {						//cuenta caracteres
 			cont++;		
 		}
 
-		letra = getchar();
+		letra = getchar();					//siguiente caracter
 	}
+	
+	printf("Tamanno del array: %d", tamannoArray);	
 
-	for(k = 1; k < tamannoArray; k++){
+	for(k = 1; k < tamannoArray + 1; k++){
 		printf("\n%d: ", k);
 		int i;
 		for(i = 0; i < array[k]; i++){
