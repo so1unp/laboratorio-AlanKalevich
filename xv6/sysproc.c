@@ -9,10 +9,17 @@
 
 int trace;
 
+
 int
 sys_fork(void)
 {
   return fork();
+}
+
+int
+sys_answer(void)
+{
+return 42;
 }
 
 int

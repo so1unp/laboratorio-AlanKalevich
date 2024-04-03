@@ -1,0 +1,9 @@
+bin
+devnull
+hola.c
+holaMundo.txt
+holaSyscalls.txt
+ls.txt
+Makefile
+README.md
+sh.c
