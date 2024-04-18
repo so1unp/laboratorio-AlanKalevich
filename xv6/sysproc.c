@@ -19,7 +19,7 @@ sys_fork(void)
 int
 sys_answer(void)
 {
-return 42;
+  return 42;
 }
 
 int
@@ -40,7 +40,7 @@ sys_kill(void)
 {
   int pid;
 
-  if(argint(0, &pid) < 0)
+  if (argint(0, &pid) < 0)
     return -1;
   return kill(pid);
 }
@@ -52,15 +52,21 @@ sys_getpid(void)
 }
 
 int
+sys_getppid(void)
+{
+  return myproc()->parent->pid;
+}
+
+int
 sys_sbrk(void)
 {
   int addr;
   int n;
 
-  if(argint(0, &n) < 0)
+  if (argint(0, &n) < 0)
     return -1;
   addr = myproc()->sz;
-  if(growproc(n) < 0)
+  if (growproc(n) < 0)
     return -1;
   return addr;
 }
@@ -71,12 +77,12 @@ sys_sleep(void)
   int n;
   uint ticks0;
 
-  if(argint(0, &n) < 0)
+  if (argint(0, &n) < 0)
     return -1;
   acquire(&tickslock);
   ticks0 = ticks;
-  while(ticks - ticks0 < n){
-    if(myproc()->killed){
+  while (ticks - ticks0 < n) {
+    if (myproc()->killed) {
       release(&tickslock);
       return -1;
     }
@@ -99,11 +105,11 @@ sys_uptime(void)
   return xticks;
 }
 
-int 
+int
 sys_trace(void)
 {
-    if (argint(0, &trace) < 0)
-        return -1;
-    return 0;
+  if (argint(0, &trace) < 0)
+    return -1;
+  return 0;
 }
 
