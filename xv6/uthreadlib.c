@@ -33,6 +33,7 @@ thread_init(void)
   // save thread 0's state.  thread_schedule() won't run the main thread ever
   // again, because its state is set to RUNNING, and thread_schedule() selects
   // a RUNNABLE thread.
+
   current_thread = &all_thread[0];
   current_thread->state = RUNNING;
 }
@@ -58,7 +59,7 @@ thread_schedule(void)
 
   if (next_thread == 0) {
     printf(2, "thread_schedule: no runnable threads\n");
-    exit();
+    return;
   }
 
   if (current_thread != next_thread) {         /* switch threads?  */
