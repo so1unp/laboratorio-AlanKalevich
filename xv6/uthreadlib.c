@@ -15,17 +15,19 @@ struct thread {
   int  state;             /* FREE, RUNNING, RUNNABLE */
 };
 
-typedef struct thread thread_t, *thread_p;
+typedef struct thread thread_t, * thread_p;
 
 static thread_t all_thread[MAX_THREAD];
 
 thread_p  current_thread;
 thread_p  next_thread;
 
+static int current_thread_index;
+
 /* This function is defined in uthread_switch.S */
 extern void thread_switch(void);
 
-void 
+void
 thread_init(void)
 {
   // main() is thread 0, which will make the first invocation to
@@ -38,39 +40,47 @@ thread_init(void)
   current_thread->state = RUNNING;
 }
 
-void 
+void
 thread_schedule(void)
 {
   thread_p t;
+  int start_index = (current_thread_index + 1) % MAX_THREAD; // Calcula el indice de inicio buscar
 
   /* Find another runnable thread. */
   next_thread = 0;
-  for (t = all_thread; t < all_thread + MAX_THREAD; t++) {
+  int i;
+  for (i = 0; i < MAX_THREAD; i++) {
+    t = &all_thread[(start_index + i) % MAX_THREAD]; // Recorre el arreglo de forma circular
     if (t->state == RUNNABLE && t != current_thread) {
       next_thread = t;
+      current_thread_index = (start_index + i) % MAX_THREAD; // Actualiza current_thread_index
       break;
     }
   }
 
-  if (t >= all_thread + MAX_THREAD && current_thread->state == RUNNABLE) {
+  if (next_thread == 0 && current_thread->state == RUNNABLE) {
     /* The current thread is the only runnable thread; run it. */
     next_thread = current_thread;
   }
 
   if (next_thread == 0) {
     printf(2, "thread_schedule: no runnable threads\n");
-    return;
+    //exit();
+    next_thread = &all_thread[0];
   }
 
-  if (current_thread != next_thread) {         /* switch threads?  */
+  if (current_thread != next_thread) {
+    /* switch threads ? */
     next_thread->state = RUNNING;
     thread_switch();
-  } else {
+  }
+  else {
     next_thread = 0;
   }
 }
 
-void 
+
+void
 thread_create(void (*func)())
 {
   thread_p t;
@@ -78,14 +88,14 @@ thread_create(void (*func)())
   for (t = all_thread; t < all_thread + MAX_THREAD; t++) {
     if (t->state == FREE) break;
   }
-  t->sp = (int) (t->stack + STACK_SIZE);   // set sp to the top of the stack
+  t->sp = (int)(t->stack + STACK_SIZE);   // set sp to the top of the stack
   t->sp -= 4;                              // space for return address
-  * (int *) (t->sp) = (int)func;           // push return address on stack
+  *(int*)(t->sp) = (int)func;           // push return address on stack
   t->sp -= 32;                             // space for registers that thread_switch expects
   t->state = RUNNABLE;
 }
 
-void 
+void
 thread_yield(void)
 {
   current_thread->state = RUNNABLE;
@@ -95,13 +105,13 @@ thread_yield(void)
 void
 thread_exit(void)
 {
-    current_thread->state = FREE;
-    thread_schedule();
+  current_thread->state = FREE;
+  thread_schedule();
 }
 
 int
 thread_id(void)
 {
-    return (int) current_thread;
+  return (int)current_thread;
 }
 
