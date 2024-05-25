@@ -13,6 +13,7 @@
 static void* producer(void*);
 static void* consumer(void*);
 
+
 struct buffer {
     int size;
     int* buf;
@@ -23,37 +24,46 @@ struct params {
     int wait_cons;
     int items;
     struct buffer* buf;
+    pthread_mutex_t mutex;
+    sem_t items_agregar;
+    sem_t items_en_buf;
 } params_t;
 
 /* Productor */
-static void* producer(void *p)
+static void* producer(void* p)
 {
     int i = 0;
 
-    struct params *params = (struct params*) p;
-
+    struct params* params = (struct params*)p;
     for (i = 0; i < params->items; i++) {
+        sem_wait(&(params->items_agregar));
+        pthread_mutex_lock(&(params->mutex));
         params->buf->buf[i % params->buf->size] = i;
         // Espera una cantidad aleatoria de microsegundos.
+        pthread_mutex_unlock(&(params->mutex));
+        sem_post(&(params->items_en_buf));
         usleep(rand() % params->wait_prod);
     }
-
     pthread_exit(0);
 }
 
 /* Consumidor */
-static void* consumer(void *p)
+static void* consumer(void* p)
 {
     int i;
 
-    struct params *params = (struct params*) p;
+    struct params* params = (struct params*)p;
 
     // Reserva memoria para guardar lo que lee el consumidor.
-    int *reader_results = (int*) malloc(sizeof(int)*params->items);
+    int* reader_results = (int*)malloc(sizeof(int) * params->items);
 
     for (i = 0; i < params->items; i++) {
+        sem_wait(&(params->items_en_buf));
+        pthread_mutex_lock(&(params->mutex));
         reader_results[i] = params->buf->buf[i % params->buf->size];
         // Espera una cantidad aleatoria de microsegundos.
+        pthread_mutex_unlock(&(params->mutex));
+        sem_post(&(params->items_agregar));
         usleep(rand() % params->wait_prod);
     }
 
@@ -80,8 +90,8 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    struct buffer *buf;
-    buf = (struct buffer*) malloc(sizeof(struct buffer));
+    struct buffer* buf;
+    buf = (struct buffer*)malloc(sizeof(struct buffer));
     if (buf == NULL) {
         perror("malloc");
         exit(EXIT_FAILURE);
@@ -95,15 +105,15 @@ int main(int argc, char** argv)
     }
 
     // Crea el buffer
-    buf->buf = (int*) malloc(sizeof(int) * buf->size);
+    buf->buf = (int*)malloc(sizeof(int) * buf->size);
     if (buf->buf == NULL) {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
 
     // Instancia una estructura de parámetros
-    struct params *params;
-    params = (struct params*) malloc(sizeof(struct params));
+    struct params* params;
+    params = (struct params*)malloc(sizeof(struct params));
     if (params == NULL) {
         perror("malloc");
         exit(EXIT_FAILURE);
@@ -133,10 +143,18 @@ int main(int argc, char** argv)
     // Inicializa semilla para números pseudo-aleatorios.
     srand(getpid());
 
+    pthread_mutex_init(&(params->mutex), NULL);
+    sem_init(&(params->items_agregar), 0, atoi(argv[1]));
+    sem_init(&(params->items_en_buf), 0, 0);
+
+
     // Crea productor y consumidor
     pthread_create(&producer_t, NULL, producer, params);
     pthread_create(&consumer_t, NULL, consumer, params);
 
     // Mi trabajo ya esta hecho ...
+    pthread_mutex_destroy(&(params->mutex));
+    sem_destroy(&(params->items_agregar));
+    sem_destroy(&(params->items_en_buf));
     pthread_exit(NULL);
 }
