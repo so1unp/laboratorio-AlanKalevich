@@ -62,9 +62,11 @@ static void* consumer(void* p)
         pthread_mutex_lock(&(params->mutex));
         reader_results[i] = params->buf->buf[i % params->buf->size];
         // Espera una cantidad aleatoria de microsegundos.
+
         pthread_mutex_unlock(&(params->mutex));
         sem_post(&(params->items_agregar));
         usleep(rand() % params->wait_prod);
+
     }
 
     // Imprime lo que leyo
