@@ -1,0 +1,16 @@
+echo hola | write jonathan
+echo hola | write eric
+echo hola | write maia
+echo hola | write facundo
+echo hola | write axel
+echo hola | write alan
+echo hola | write yamila
+echo hola | write ramiro
+echo hola | write braian
+echo hola | write gabriel
+echo hola | write juan
+echo hola | write matiasc
+echo hola | write agustinr
+echo hola | write lucassm
+echo hola | write santiago
+echo hola | write melisa
